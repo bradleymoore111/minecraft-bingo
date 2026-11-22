@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minecraft Bingo</title>
+  <link rel="icon" type="image/x-icon" href="/icons/bingo.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Permanent+Marker&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <!-- Festive Christmas Lights & Persistent Post-Bingo Chaos Layer -->
+  <div id="christmas-garland" class="christmas-garland hidden" aria-hidden="true"></div>
+  <div id="chaos-decor" class="chaos-decor hidden" aria-hidden="true"></div>
+
+  <!-- Toast Stack -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Top Navbar -->
+  <header id="navbar" class="navbar hidden">
+    <div class="nav-left">
+      <a id="brand-home" href="/" class="brand">
+        <span class="brand-cube" aria-hidden="true"></span>
+        <span class="brand-text">MINECRAFT BINGO</span>
+      </a>
+      <span id="nav-live" class="live-dot" title="Connected to live updates"></span>
+    </div>
+    <div class="nav-right">
+      <button id="btn-info" class="btn btn-ghost btn-sm" type="button">Info</button>
+      <button id="btn-host" class="btn btn-amber btn-sm hidden" type="button">Host Controls</button>
+      <button id="btn-profile" class="btn btn-secondary btn-sm profile-trigger" type="button">
+        <span id="nav-avatar" class="avatar-chip"></span>
+        <span id="nav-username">Profile</span>
+      </button>
+      <button id="btn-logout" class="btn btn-ghost btn-sm" type="button">Sign Out</button>
+    </div>
+  </header>
+
+  <main id="app" class="app-shell">
+    <!-- Loading Screen -->
+    <section id="view-loading" class="center-card">
+      <div class="loader"></div>
+      <p class="muted">Loading Minecraft Bingo...</p>
+    </section>
+
+    <!-- Login View -->
+    <section id="view-login" class="center-card hidden">
+      <div class="hero-card">
+        <h1 class="hero-title">Minecraft Bingo</h1>
+        <p class="hero-subtitle">
+          Sign in, pick Solo or Team, and check off challenges as you go.
+        </p>
+
+        <div id="login-error" class="alert alert-error hidden"></div>
+
+        <div class="oauth-buttons">
+          <a id="btn-discord-login" href="/auth/discord" class="btn btn-discord btn-lg hidden">
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+            </svg>
+            Continue with Discord
+          </a>
+
+          <a id="btn-google-login" href="/auth/google" class="btn btn-google btn-lg hidden">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+              <path fill="#34A853" d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.565 24 12.255 24z"/>
+              <path fill="#FBBC05" d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 0 0 0 10.76l3.98-3.09z"/>
+              <path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.69 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/>
+            </svg>
+            Continue with Google
+          </a>
+        </div>
+
+        <div id="oauth-hint" class="oauth-hint hidden">
+          No OAuth keys are configured in <code>.env</code> yet. Add Google and/or Discord credentials to enable OAuth buttons.
+        </div>
+
+        <div id="dev-login-box" class="dev-login-box hidden">
+          <div class="divider"><span>Local / Quick Sign-In</span></div>
+          <form id="dev-login-form" class="inline-form">
+            <input id="dev-name-input" type="text" maxlength="32" placeholder="Enter Minecraft username..." required />
+            <button type="submit" class="btn btn-primary">Enter</button>
+          </form>
+        </div>
+
+        <div class="login-footer-link">
+          <a id="btn-login-info" href="/info" class="link-muted">Browse all challenges &amp; rules →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- First-Time Onboarding View -->
+    <section id="view-onboarding" class="onboarding-shell hidden">
+      <div class="onboarding-header">
+        <h1>Welcome, <span id="onboard-username">Player</span>!</h1>
+        <p class="muted">How are you playing today? You can switch anytime in your Profile.</p>
+      </div>
+
+      <div class="onboarding-grid">
+        <!-- Play Solo Card -->
+        <div class="choice-card">
+          <div class="choice-icon choice-icon-solo">⚔️</div>
+          <h2>Play Solo</h2>
+          <p class="muted">
+            Get your own 5×5 Bingo card and track your progress solo.
+          </p>
+          <div class="color-picker-block">
+            <label class="field-label">Your Badge Color</label>
+            <div id="solo-color-picker" class="color-swatches"></div>
+          </div>
+          <button id="btn-choose-solo" class="btn btn-primary btn-lg btn-full" type="button">
+            Play Solo →
+          </button>
+        </div>
+
+        <!-- Join or Create Team Card -->
+        <div class="choice-card">
+          <div class="choice-icon choice-icon-team">🛡️</div>
+          <h2>Join a Team</h2>
+          <p class="muted">
+            Share one Bingo card with teammates — when anyone checks off a tile, it syncs live for the whole squad.
+          </p>
+
+          <div class="team-list-block">
+            <label class="field-label">Existing Teams</label>
+            <div id="onboard-team-list" class="team-select-list"></div>
+          </div>
+
+          <div class="divider"><span>Or Create a New Team</span></div>
+
+          <form id="onboard-create-team-form" class="stack-form">
+            <input id="onboard-team-name" type="text" maxlength="32" placeholder="Team name (e.g. Nether Rats)" required />
+            <div id="team-color-picker" class="color-swatches"></div>
+            <button type="submit" class="btn btn-secondary btn-full">Create &amp; Join Team</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Dashboard View -->
+    <section id="view-dashboard" class="dashboard hidden">
+      <div class="board-column">
+        <div class="board-header">
+          <div>
+            <div class="board-title-row">
+              <span id="viewing-team-dot" class="team-dot"></span>
+              <h2 id="viewing-team-name">Your Board</h2>
+              <span id="viewing-badge" class="pill pill-muted hidden">Spectating</span>
+            </div>
+            <p id="viewing-subtitle" class="muted small"></p>
+          </div>
+          <div class="board-actions">
+            <button id="btn-back-to-my-board" class="btn btn-secondary btn-sm hidden" type="button">
+              Back to My Board
+            </button>
+            <div id="board-stats" class="board-stats">
+              <span id="stat-checked">0 / 25</span>
+              <span class="sep">·</span>
+              <span id="stat-bingos">0 Bingos</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tier Legend -->
+        <div id="tier-legend" class="tier-legend"></div>
+
+        <!-- 5x5 Bingo Grid -->
+        <div id="bingo-grid" class="bingo-grid" role="grid" aria-label="Minecraft Bingo Board"></div>
+      </div>
+
+      <!-- Sidebar: Leaderboard + Activity Feed -->
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Leaderboard</h3>
+            <span id="leaderboard-hint" class="muted tiny">Click to spectate</span>
+          </div>
+          <div id="leaderboard-list" class="leaderboard-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Live Feed</h3>
+          </div>
+          <div id="activity-list" class="activity-list"></div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Info / Challenge Rules View -->
+    <section id="view-info" class="info-shell hidden">
+      <div class="info-header">
+        <div>
+          <h1>Challenge Guide &amp; Rules</h1>
+          <p class="muted">
+            Every 5×5 board is generated as a Doubly-Diagonal Latin Square — every row, column, and both diagonals contain exactly one challenge from each difficulty tier (T1–T5), with "Obtain wood" shared in the center.
+          </p>
+        </div>
+        <button id="btn-info-back" class="btn btn-secondary" type="button">← Back to Board</button>
+      </div>
+
+      <div id="info-tier-nav" class="info-tier-nav"></div>
+      <div id="info-tiers-container" class="info-tiers-container"></div>
+    </section>
+  </main>
+
+  <!-- Profile Modal -->
+  <div id="modal-profile" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+    <div class="modal-backdrop" data-close-modal="modal-profile"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="profile-modal-title">Profile &amp; Team</h2>
+        <button class="icon-btn" type="button" data-close-modal="modal-profile" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="profile-details-form" class="stack-form">
+          <div>
+            <label class="field-label" for="profile-name-input">Display Name</label>
+            <input id="profile-name-input" type="text" maxlength="32" required />
+          </div>
+          <div id="profile-team-name-wrap">
+            <label class="field-label" for="profile-team-name-input">Team Name</label>
+            <input id="profile-team-name-input" type="text" maxlength="32" />
+          </div>
+          <div>
+            <label class="field-label">Badge Color</label>
+            <div id="profile-color-picker" class="color-swatches"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+
+        <div class="divider"><span>Switch Mode / Team</span></div>
+
+        <div class="profile-switch-section">
+          <button id="btn-switch-solo" class="btn btn-secondary btn-full" type="button">
+            ⚔️ Switch to Play Solo
+          </button>
+
+          <div class="team-list-block">
+            <label class="field-label">Join an Existing Team</label>
+            <div id="profile-team-list" class="team-select-list"></div>
+          </div>
+
+          <form id="profile-create-team-form" class="inline-form">
+            <input id="profile-new-team-name" type="text" maxlength="32" placeholder="Or create a new team..." required />
+            <button type="submit" class="btn btn-secondary">Create</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Host Controls Modal -->
+  <div id="modal-host" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="host-modal-title">
+    <div class="modal-backdrop" data-close-modal="modal-host"></div>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="host-modal-title">Host Controls</h2>
+        <button class="icon-btn" type="button" data-close-modal="modal-host" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="host-block">
+          <h3>Reset &amp; Deal Boards</h3>
+          <p class="muted small">Deal fresh boards (keeping players &amp; teams), or wipe everything for a completely clean slate.</p>
+          <div class="btn-row">
+            <button id="btn-host-redeal" class="btn btn-primary" type="button">Deal Fresh Boards</button>
+            <button id="btn-host-reset-all" class="btn btn-danger" type="button">Reset All State</button>
+            <button id="btn-host-test-bingo" class="btn btn-secondary" type="button">Preview Bingo Chaos 🎄</button>
+          </div>
+        </div>
+
+        <div class="host-block">
+          <h3>Challenges Pool</h3>
+          <p class="muted small">Edit <code>challenges.json</code> on your desktop and reload it without restarting.</p>
+          <button id="btn-reload-challenges" class="btn btn-secondary" type="button">Reload challenges.json</button>
+        </div>
+
+        <div class="host-block">
+          <h3>Manage Players &amp; Teams</h3>
+          <div id="host-team-list" class="host-team-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Anchored Hovercard -->
+  <div id="hovercard" class="hovercard hidden" role="tooltip" aria-hidden="true"></div>
+
+  <!-- Full-Screen Obnoxious Christmas Bingo Celebration Popup -->
+  <div id="bingo-celebration" class="bingo-celebration hidden" role="dialog" aria-modal="true" aria-labelledby="bingo-celeb-title">
+    <div id="bingo-celeb-graffiti" class="bingo-celeb-graffiti" aria-hidden="true"></div>
+    <div class="bingo-celeb-card">
+      <div class="bingo-celeb-snowmen" aria-hidden="true">☃️ 🎄 🎅 🎄 ⛄</div>
+      <div class="bingo-celeb-kicker">MERRY BINGOMAS!!</div>
+      <h1 id="bingo-celeb-title" class="bingo-celeb-title">BINGO!!!</h1>
+      <div id="bingo-celeb-winner" class="bingo-celeb-winner">Someone</div>
+      <p id="bingo-celeb-detail" class="bingo-celeb-detail"></p>
+      <button id="btn-dismiss-bingo" class="btn btn-primary btn-lg bingo-celeb-btn" type="button">
+        LET'S GOOO 🎁
+      </button>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

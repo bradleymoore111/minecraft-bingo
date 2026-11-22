@@ -1,0 +1,17 @@
+{
+  "name": "minecraft-bingo",
+  "version": "1.0.0",
+  "description": "Self-hosted Minecraft Bingo party tracker with Latin-square balanced cards, Google & Discord OAuth, Solo/Team play, and live updates.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test:latin": "node scripts/test-latin.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
