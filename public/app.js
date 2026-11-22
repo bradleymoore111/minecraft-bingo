@@ -8,6 +8,8 @@
     viewingTeamId: null,
     hovercardPinned: false,
     hovercardCellIndex: null,
+    alertsEnabled: localStorage.getItem('mcbingo_alerts') === 'true',
+    checkoffCtx: null,
     selectedSoloColor: '#22c55e',
     selectedNewTeamColor: '#38bdf8',
     selectedProfileColor: '#22c55e',
@@ -47,17 +49,132 @@
     }
   }
 
-  function toast(message, kind = 'info') {
+  function toast(message, kind = 'info', onClick = null) {
     const container = $('toast-container');
     const el = document.createElement('div');
-    el.className = `toast ${kind}`;
+    el.className = `toast ${kind}${onClick ? ' clickable' : ''}`;
     el.textContent = message;
+    if (onClick) {
+      el.addEventListener('click', () => {
+        onClick();
+        el.remove();
+      });
+    }
     container.appendChild(el);
+    const duration = (kind === 'bingo' || kind === 'tier-alert' || kind === 'team-alert') ? 6500 : 3400;
     setTimeout(() => {
       el.style.opacity = '0';
       el.style.transition = 'opacity 0.25s ease';
       setTimeout(() => el.remove(), 260);
-    }, kind === 'bingo' ? 6000 : 3200);
+    }, duration);
+  }
+
+  // --- Bouncy "Bloing!" Sound & OS Desktop Notifications ---
+  function playBloing(isBig = false) {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime + 0.01;
+
+      // Bouncy spring "bloing!" pitch contour
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(210, now);
+      osc.frequency.exponentialRampToValueAtTime(640, now + 0.09);
+      osc.frequency.exponentialRampToValueAtTime(460, now + 0.16);
+      osc.frequency.exponentialRampToValueAtTime(isBig ? 820 : 690, now + 0.27);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.2, now + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.36);
+
+      // Extra harmonic sparkle chime for T4/T5 milestones
+      if (isBig) {
+        const chime = ctx.createOscillator();
+        const cGain = ctx.createGain();
+        chime.type = 'sine';
+        chime.frequency.setValueAtTime(880, now + 0.14);
+        chime.frequency.exponentialRampToValueAtTime(1174.66, now + 0.34);
+        cGain.gain.setValueAtTime(0.001, now + 0.14);
+        cGain.gain.exponentialRampToValueAtTime(0.14, now + 0.17);
+        cGain.gain.exponentialRampToValueAtTime(0.001, now + 0.52);
+        chime.connect(cGain);
+        cGain.connect(ctx.destination);
+        chime.start(now + 0.14);
+        chime.stop(now + 0.54);
+      }
+    } catch {}
+  }
+
+  function sendDesktopNotification(title, body, onClick = null) {
+    if (!state.alertsEnabled) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    try {
+      const n = new Notification(title, {
+        body,
+        icon: '/icons/bingo.ico',
+        silent: false
+      });
+      n.onclick = () => {
+        window.focus();
+        if (onClick) onClick();
+        n.close();
+      };
+    } catch {}
+  }
+
+  function renderAlertsButton() {
+    const btn = $('btn-alerts');
+    if (!btn) return;
+    const desktopReady = 'Notification' in window && Notification.permission === 'granted';
+    const on = state.alertsEnabled;
+    btn.classList.toggle('btn-alerts-on', on);
+    btn.classList.toggle('btn-ghost', !on);
+    btn.textContent = on ? '🔔 Alerts On' : '🔔 Alerts';
+    btn.title = on
+      ? (desktopReady ? 'Desktop + Bloing! alerts active (click to mute)' : 'Bloing! + in-app alerts active (click to mute)')
+      : 'Enable Desktop notifications & Bloing! sound for teammate & T4+ completions';
+  }
+
+  function handleLiveCheckNotification(ev) {
+    if (!ev || !ev.title) return;
+    if (ev.checkedByUserId && state.me?.id && ev.checkedByUserId === state.me.id) return;
+
+    const isTeammate = Boolean(state.me?.teamId && ev.teamId === state.me.teamId);
+    const isHighTier = Number(ev.tier) >= 4;
+    if (!isTeammate && !isHighTier) return;
+
+    const openProof = ev.proofUrl
+      ? () => openLightbox(ev.proofUrl, ev.title, `Completed by ${ev.checkedByName || ev.teamName}`)
+      : null;
+
+    if (isTeammate) {
+      const suffix = ev.proofUrl ? ' (click to view selfie 📷)' : '';
+      toast(`✅ ${ev.checkedByName || 'Teammate'} completed "${ev.title}"!${suffix}`, 'team-alert', openProof);
+      if (localStorage.getItem('mcbingo_alerts') !== 'false') playBloing(isHighTier);
+      sendDesktopNotification(
+        `Team Progress! (${ev.teamName || 'Your Team'})`,
+        `${ev.checkedByName || 'A teammate'} completed "${ev.title}"`,
+        openProof
+      );
+    } else if (isHighTier) {
+      const who = ev.teamName && ev.teamName !== ev.checkedByName
+        ? `${ev.checkedByName} (${ev.teamName})`
+        : (ev.checkedByName || ev.teamName || 'Someone');
+      const suffix = ev.proofUrl ? ' · View selfie 📷' : '';
+      toast(`🔥 ${who} completed T${ev.tier}: "${ev.title}"!${suffix}`, 'tier-alert', openProof);
+      if (localStorage.getItem('mcbingo_alerts') !== 'false') playBloing(true);
+      sendDesktopNotification(
+        `🔥 Tier ${ev.tier} Completed!`,
+        `${who} finished "${ev.title}"`,
+        openProof
+      );
+    }
   }
 
   // --- Festive Christmas Bingo Chaos Engine ---
@@ -404,6 +521,12 @@
         }
         if (msg.type === 'bingo' && msg.event?.teamName) {
           showBingoCelebration(msg.event);
+          sendDesktopNotification(
+            `🎄 BINGO!! ${msg.event.teamName}`,
+            msg.event.title ? `Scored Bingo with "${msg.event.title}"!` : 'Someone just hit BINGO!'
+          );
+        } else if (msg.type === 'check' && msg.event) {
+          handleLiveCheckNotification(msg.event);
         } else if (msg.type === 'reset' && msg.event?.kind === 'redeal') {
           $('bingo-celebration').classList.add('hidden');
           toast('Fresh Bingo boards dealt!');
@@ -486,6 +609,9 @@
           .map((ch) => {
             const tagsHtml = (ch.tags || []).map((tag) => `<span class="tag">#${escapeHtml(tag)}</span>`).join('');
             const text = ch.rules || ch.description || '';
+            const proofHtml = ch.proof
+              ? `<div class="info-proof-callout"><strong>📷 Selfie / Proof:</strong> ${escapeHtml(ch.proof)}</div>`
+              : '';
             return `
               <article class="info-card">
                 <div class="info-card-icon-wrap">
@@ -494,6 +620,7 @@
                 <div class="info-card-body">
                   <h3 class="info-card-title">${escapeHtml(ch.title)}</h3>
                   <p class="info-card-rules">${escapeHtml(text)}</p>
+                  ${proofHtml}
                   ${tagsHtml ? `<div class="inspector-tags">${tagsHtml}</div>` : ''}
                 </div>
               </article>
@@ -529,6 +656,7 @@
       avatarEl.style.background = myTeam?.color || '#3c4a63';
     }
     $('btn-host').classList.toggle('hidden', !state.me.isHost);
+    renderAlertsButton();
   }
 
   function renderLogin() {
@@ -688,11 +816,17 @@
         : '';
 
       const tierBadge = cell.isFreeSpace ? 'FREE' : `T${cell.tier}`;
+      const proofBadgeHtml = cell.proofUrl
+        ? `<button type="button" class="cell-proof-btn" title="View proof screenshot" aria-label="View proof screenshot">📷</button>`
+        : '';
 
       tile.innerHTML = `
         <div class="cell-top">
           <span class="cell-tier">${tierBadge}</span>
-          <button type="button" class="cell-info-btn" title="Challenge details" aria-label="Details">i</button>
+          <div class="cell-top-right">
+            ${proofBadgeHtml}
+            <button type="button" class="cell-info-btn" title="Challenge details" aria-label="Details">i</button>
+          </div>
         </div>
         <div class="cell-body">
           ${renderIconHtml(cell.icon, 'cell-icon', 'cell-icon-emoji')}
@@ -722,25 +856,40 @@
         }
       });
 
-      const triggerToggle = async () => {
-        if (!canClickBoard || lockedByOther) return;
+      const proofBtn = tile.querySelector('.cell-proof-btn');
+      if (proofBtn) {
+        proofBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          hideHovercard(true);
+          openLightbox(
+            cell.proofUrl,
+            cell.title,
+            `${cell.checkedByName || viewedTeam?.name || 'Player'} · ${formatTime(cell.checkedAt)}`
+          );
+        });
+      }
+
+      const handleTileClick = () => {
         hideHovercard(true);
-        const targetTeamId = (!isLockout && isSpectating && state.me?.isHost) ? viewedTeam.id : null;
-        try {
-          await api('/api/board/toggle', {
-            method: 'POST',
-            body: JSON.stringify({ cellIndex: cell.index, teamId: targetTeamId })
-          });
-        } catch (err) {
-          toast(err.message, 'error');
+        if (!canClickBoard || lockedByOther) {
+          if (cell.proofUrl) {
+            openLightbox(
+              cell.proofUrl,
+              cell.title,
+              `${cell.checkedByName || viewedTeam?.name || 'Player'} · ${formatTime(cell.checkedAt)}`
+            );
+          }
+          return;
         }
+        const targetTeamId = (!isLockout && isSpectating && state.me?.isHost) ? viewedTeam.id : null;
+        openCheckoffModal(cell, targetTeamId);
       };
 
-      tile.addEventListener('click', triggerToggle);
+      tile.addEventListener('click', handleTileClick);
       tile.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          triggerToggle();
+          handleTileClick();
         }
       });
 
@@ -793,16 +942,26 @@
     if (items.length === 0) {
       actEl.innerHTML = `<div class="muted small">No activity yet. Start checking off challenges!</div>`;
     } else {
-      actEl.innerHTML = items
-        .map(
-          (a) => `
-            <div class="activity-item kind-${escapeHtml(a.kind || 'info')}">
-              <div>${escapeHtml(a.text)}</div>
-              <span class="activity-time">${escapeHtml(formatTime(a.at))}</span>
-            </div>
-          `
-        )
-        .join('');
+      actEl.innerHTML = '';
+      for (const a of items) {
+        const div = document.createElement('div');
+        div.className = `activity-item kind-${a.kind || 'info'}`;
+        div.innerHTML = `
+          <div>${escapeHtml(a.text)}</div>
+          <span class="activity-time">${escapeHtml(formatTime(a.at))}</span>
+        `;
+        if (a.proofUrl) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'activity-proof-btn';
+          btn.textContent = '📷 View Selfie';
+          btn.addEventListener('click', () => {
+            openLightbox(a.proofUrl, a.text, formatTime(a.at));
+          });
+          div.appendChild(btn);
+        }
+        actEl.appendChild(div);
+      }
     }
   }
 
@@ -832,6 +991,12 @@
       ? 'FREE · Center Square'
       : `T${cell.tier} · ${cell.tierName}`;
 
+    const proofPreviewHtml = cell.proofUrl
+      ? `<img class="hovercard-proof-thumb" src="${escapeHtml(cell.proofUrl)}" alt="Proof screenshot" />`
+      : (cell.proof
+          ? `<div class="hovercard-proof-tip">📷 <strong>Selfie idea:</strong> ${escapeHtml(cell.proof)}</div>`
+          : '');
+
     card.innerHTML = `
       <div class="hovercard-head">
         ${renderIconHtml(cell.icon, 'hovercard-icon', 'hovercard-icon-emoji')}
@@ -843,6 +1008,7 @@
         </div>
       </div>
       <div class="hovercard-desc">${escapeHtml(cell.description || 'Complete this challenge in Minecraft and click to check it off.')}</div>
+      ${proofPreviewHtml}
       ${tagsHtml ? `<div class="inspector-tags">${tagsHtml}</div>` : ''}
       <div class="hovercard-meta">${checkedInfo}</div>
     `;
@@ -1193,6 +1359,303 @@
       title: 'Defeat the Warden',
       bingoCount: 1
     });
+  });
+
+  // --- Checkoff & Selfie Proof Modal + Lightbox ---
+  function getDefaultMcScreenshotsPath() {
+    const ua = navigator.userAgent || '';
+    if (/Mac/i.test(ua)) return '~/Library/Application Support/minecraft/screenshots';
+    if (/Linux/i.test(ua)) return '~/.minecraft/screenshots';
+    return '%APPDATA%\\.minecraft\\screenshots';
+  }
+
+  function compressImageFile(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !file.type.startsWith('image/')) {
+        return reject(new Error('Please select or paste an image file.'));
+      }
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Failed to read image file'));
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Could not decode image'));
+        img.onload = () => {
+          const maxDim = 1400;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            const scale = maxDim / Math.max(width, height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Prefer WebP for tiny crisp screenshots; fall back to JPEG if unsupported
+          let dataUrl = canvas.toDataURL('image/webp', 0.84);
+          if (!dataUrl.startsWith('data:image/webp')) {
+            dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          }
+          resolve(dataUrl);
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderCheckoffPreview() {
+    const ctx = state.checkoffCtx;
+    if (!ctx) return;
+    const src = ctx.pendingDataUrl !== undefined ? ctx.pendingDataUrl : ctx.existingProofUrl;
+    const hasImg = Boolean(src);
+    $('proof-dropzone-empty').classList.toggle('hidden', hasImg);
+    $('proof-preview-wrap').classList.toggle('hidden', !hasImg);
+    if (hasImg) {
+      $('proof-preview-img').src = src;
+    }
+
+    const submitBtn = $('btn-checkoff-submit');
+    if (ctx.cell.checked) {
+      submitBtn.textContent = ctx.proofChanged
+        ? (hasImg ? 'Save Selfie 📷' : 'Remove Selfie')
+        : 'Done';
+    } else {
+      submitBtn.textContent = hasImg ? 'Complete Square with Selfie 📷' : 'Complete Square ✓';
+    }
+  }
+
+  function openCheckoffModal(cell, targetTeamId) {
+    state.checkoffCtx = {
+      cell,
+      targetTeamId,
+      existingProofUrl: cell.proofUrl || null,
+      pendingDataUrl: undefined,
+      proofChanged: false
+    };
+
+    $('checkoff-icon').innerHTML = renderIconHtml(cell.icon, 'hovercard-icon', 'hovercard-icon-emoji');
+    const tierEl = $('checkoff-tier');
+    tierEl.textContent = cell.isFreeSpace ? 'FREE · Center Square' : `T${cell.tier} · ${cell.tierName}`;
+    tierEl.style.setProperty('--tier-color', cell.tierColor || '#4ade80');
+    $('checkoff-modal-title').textContent = cell.title;
+    $('checkoff-desc').textContent = cell.description || '';
+
+    const tipEl = $('checkoff-proof-tip');
+    if (cell.proof) {
+      tipEl.innerHTML = `<strong>📷 Selfie / Proof Idea:</strong> ${escapeHtml(cell.proof)}`;
+      tipEl.classList.remove('hidden');
+    } else {
+      tipEl.classList.add('hidden');
+    }
+
+    const statusEl = $('checkoff-status');
+    if (cell.checked) {
+      statusEl.textContent = `✓ Completed by ${cell.checkedByName || 'Unknown'} at ${formatTime(cell.checkedAt)}`;
+      statusEl.classList.remove('hidden');
+      $('btn-checkoff-uncheck').classList.remove('hidden');
+    } else {
+      statusEl.classList.add('hidden');
+      $('btn-checkoff-uncheck').classList.add('hidden');
+    }
+
+    $('mc-path-label').textContent = getDefaultMcScreenshotsPath();
+    $('proof-file-input').value = '';
+    renderCheckoffPreview();
+    openModal('modal-checkoff');
+  }
+
+  async function handleIncomingProofFile(file) {
+    if (!state.checkoffCtx) return;
+    try {
+      const dataUrl = await compressImageFile(file);
+      state.checkoffCtx.pendingDataUrl = dataUrl;
+      state.checkoffCtx.proofChanged = true;
+      renderCheckoffPreview();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  }
+
+  function openLightbox(imgUrl, title, meta = '') {
+    if (!imgUrl) return;
+    $('lightbox-img').src = imgUrl;
+    $('lightbox-title').textContent = title || 'Proof Screenshot';
+    $('lightbox-meta').textContent = meta || '';
+    openModal('modal-lightbox');
+  }
+
+  // Dropzone & Paste wiring
+  const dropzone = $('proof-dropzone');
+  const fileInput = $('proof-file-input');
+
+  dropzone.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    fileInput.click();
+  });
+
+  $('btn-proof-replace').addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.click();
+  });
+
+  $('btn-proof-clear').addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!state.checkoffCtx) return;
+    state.checkoffCtx.pendingDataUrl = null;
+    state.checkoffCtx.proofChanged = true;
+    fileInput.value = '';
+    renderCheckoffPreview();
+  });
+
+  $('btn-proof-zoom').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const ctx = state.checkoffCtx;
+    if (!ctx) return;
+    const src = ctx.pendingDataUrl !== undefined ? ctx.pendingDataUrl : ctx.existingProofUrl;
+    if (src) openLightbox(src, ctx.cell.title, ctx.cell.checkedByName || state.me?.name || '');
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file) handleIncomingProofFile(file);
+  });
+
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('dragover');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    const file = e.dataTransfer?.files?.[0];
+    if (file) handleIncomingProofFile(file);
+  });
+
+  document.addEventListener('paste', (e) => {
+    if ($('modal-checkoff').classList.contains('hidden')) return;
+    const items = e.clipboardData?.items || [];
+    for (const item of items) {
+      if (item.type && item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault();
+          handleIncomingProofFile(file);
+          return;
+        }
+      }
+    }
+  });
+
+  $('btn-copy-mc-path').addEventListener('click', async () => {
+    const p = getDefaultMcScreenshotsPath();
+    try {
+      await navigator.clipboard.writeText(p);
+      toast(`Copied "${p}" — paste it into the file picker's address bar!`);
+    } catch {
+      toast(`Path: ${p}`);
+    }
+  });
+
+  $('btn-checkoff-submit').addEventListener('click', async () => {
+    const ctx = state.checkoffCtx;
+    if (!ctx) return;
+    const btn = $('btn-checkoff-submit');
+    btn.disabled = true;
+    try {
+      if (ctx.cell.checked) {
+        if (ctx.proofChanged) {
+          await api('/api/board/proof', {
+            method: 'POST',
+            body: JSON.stringify({
+              cellIndex: ctx.cell.index,
+              teamId: ctx.targetTeamId,
+              proofDataUrl: ctx.pendingDataUrl || null
+            })
+          });
+          toast(ctx.pendingDataUrl ? 'Selfie saved! 📷' : 'Screenshot removed.');
+        }
+      } else {
+        await api('/api/board/toggle', {
+          method: 'POST',
+          body: JSON.stringify({
+            cellIndex: ctx.cell.index,
+            teamId: ctx.targetTeamId,
+            proofDataUrl: ctx.pendingDataUrl || null
+          })
+        });
+        playBloing(Number(ctx.cell.tier) >= 4);
+      }
+      closeModal('modal-checkoff');
+      state.checkoffCtx = null;
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('btn-checkoff-uncheck').addEventListener('click', async () => {
+    const ctx = state.checkoffCtx;
+    if (!ctx || !ctx.cell.checked) return;
+    const btn = $('btn-checkoff-uncheck');
+    btn.disabled = true;
+    try {
+      await api('/api/board/toggle', {
+        method: 'POST',
+        body: JSON.stringify({
+          cellIndex: ctx.cell.index,
+          teamId: ctx.targetTeamId
+        })
+      });
+      closeModal('modal-checkoff');
+      state.checkoffCtx = null;
+    } catch (err) {
+      toast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Alerts toggle button
+  $('btn-alerts').addEventListener('click', async () => {
+    if (state.alertsEnabled) {
+      state.alertsEnabled = false;
+      localStorage.setItem('mcbingo_alerts', 'false');
+      renderAlertsButton();
+      toast('Desktop & Bloing! alerts muted.');
+      return;
+    }
+
+    if ('Notification' in window && Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch {}
+    }
+
+    state.alertsEnabled = true;
+    localStorage.setItem('mcbingo_alerts', 'true');
+    renderAlertsButton();
+    playBloing(true);
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      toast('🔔 Alerts enabled! You\'ll hear a Bloing! and get desktop notifications for teammates & T4+ completions.');
+      sendDesktopNotification('Minecraft Bingo Alerts Ready!', 'You will be notified for teammate progress, T4+ challenges, and Bingos!');
+    } else {
+      toast('🔔 Bloing! + in-app alerts enabled (allow browser notifications to get OS popups while in Minecraft).');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeModal('modal-lightbox');
+      closeModal('modal-checkoff');
+    }
   });
 
   $('btn-reload-challenges').addEventListener('click', async () => {

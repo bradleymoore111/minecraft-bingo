@@ -10,7 +10,29 @@ const DATA_DIR = path.join(ROOT_DIR, 'data');
 const STATE_PATH = process.env.STATE_FILE
   ? path.resolve(ROOT_DIR, process.env.STATE_FILE)
   : path.join(DATA_DIR, 'state.json');
+export const PROOFS_DIR = path.join(DATA_DIR, 'proofs');
+const MAX_PROOF_BYTES = 2.5 * 1024 * 1024; // 2.5 MB decoded image cap
 const CHALLENGES_PATH = path.join(ROOT_DIR, 'challenges.json');
+
+function detectImageFormat(buf) {
+  if (buf.length < 12) return null;
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) {
+    return { ext: 'png', mime: 'image/png' };
+  }
+  // JPEG: FF D8 FF
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return { ext: 'jpg', mime: 'image/jpeg' };
+  }
+  // WebP: RIFF....WEBP
+  if (
+    buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 &&
+    buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50
+  ) {
+    return { ext: 'webp', mime: 'image/webp' };
+  }
+  return null;
+}
 
 export const TEAM_COLORS = [
   '#22c55e', // Emerald
@@ -386,7 +408,47 @@ export class BingoStore {
     return { user, team };
   }
 
-  toggleCell(userId, cellIndex, overrideTeamId = null) {
+  saveProofImage(proofDataUrl) {
+    if (!proofDataUrl) return null;
+    const str = String(proofDataUrl);
+    const match = str.match(/^data:image\/(webp|jpeg|jpg|png);base64,([A-Za-z0-9+/=]+)$/);
+    if (!match) {
+      throw new Error('Invalid image format (please upload PNG, JPEG, or WebP)');
+    }
+    const buf = Buffer.from(match[2], 'base64');
+    if (buf.length === 0 || buf.length > MAX_PROOF_BYTES) {
+      throw new Error('Screenshot is too large (max 2.5 MB)');
+    }
+    const detected = detectImageFormat(buf);
+    if (!detected) {
+      throw new Error('Unsupported or corrupted image file');
+    }
+    if (!fs.existsSync(PROOFS_DIR)) {
+      fs.mkdirSync(PROOFS_DIR, { recursive: true });
+    }
+    const filename = `${crypto.randomUUID()}.${detected.ext}`;
+    fs.writeFileSync(path.join(PROOFS_DIR, filename), buf);
+    return `/api/proofs/${filename}`;
+  }
+
+  deleteProofFile(proofUrl) {
+    if (!proofUrl || typeof proofUrl !== 'string') return;
+    const match = proofUrl.match(/^\/api\/proofs\/([a-f0-9-]+\.(?:webp|jpg|png))$/);
+    if (!match) return;
+    const fullPath = path.join(PROOFS_DIR, match[1]);
+    try {
+      if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    } catch {}
+  }
+
+  deleteBoardProofs(board) {
+    if (!Array.isArray(board)) return;
+    for (const cell of board) {
+      if (cell?.proofUrl) this.deleteProofFile(cell.proofUrl);
+    }
+  }
+
+  toggleCell(userId, cellIndex, overrideTeamId = null, proofDataUrl = null) {
     const user = this.state.users[userId];
     if (!user) throw new Error('User not found');
 
@@ -414,21 +476,25 @@ export class BingoStore {
         }
         const prevTeamId = cell.checkedByTeamId || team.id;
         this.removeCellActivity(cell, prevTeamId, idx);
+        this.deleteProofFile(cell.proofUrl);
         cell.checked = false;
         cell.checkedByTeamId = null;
         cell.checkedByUserId = null;
         cell.checkedByName = null;
         cell.checkedAt = null;
+        cell.proofUrl = null;
         cell.activityId = null;
         this.saveAndBroadcast('uncheck', { cellIndex: idx, teamId: prevTeamId });
         return { cell, newBingo: false };
       }
 
+      const proofUrl = this.saveProofImage(proofDataUrl);
       cell.checked = true;
       cell.checkedByTeamId = team.id;
       cell.checkedByUserId = user.id;
       cell.checkedByName = user.name;
       cell.checkedAt = new Date().toISOString();
+      cell.proofUrl = proofUrl;
 
       const afterBingos = detectBingos(board, team.id);
       const newBingo = afterBingos.length > beforeBingos;
@@ -443,14 +509,23 @@ export class BingoStore {
           : `${user.name} (${team.name}) locked "${cell.title}"`,
         userId: user.id,
         teamId: team.id,
-        cellIndex: idx
+        cellIndex: idx,
+        tier: cell.tier,
+        proofUrl
       });
       cell.activityId = act.id;
       this.saveAndBroadcast(newBingo ? 'bingo' : 'check', {
         cellIndex: idx,
         teamId: team.id,
         teamName: team.name,
+        teamColor: team.color,
+        checkedByUserId: user.id,
+        checkedByName: user.name,
+        bingoCount: afterBingos.length,
         title: cell.title,
+        tier: cell.tier,
+        tierName: cell.tierName,
+        proofUrl,
         newBingo
       });
       return { cell, newBingo, bingos: afterBingos };
@@ -463,11 +538,13 @@ export class BingoStore {
 
     if (cell.checked) {
       this.removeCellActivity(cell, team.id, idx);
+      this.deleteProofFile(cell.proofUrl);
       cell.checked = false;
       cell.checkedByTeamId = null;
       cell.checkedByUserId = null;
       cell.checkedByName = null;
       cell.checkedAt = null;
+      cell.proofUrl = null;
       cell.activityId = null;
       const remaining = detectBingos(board);
       if (remaining.length === 0) team.firstBingoAt = null;
@@ -476,11 +553,13 @@ export class BingoStore {
       return { cell, newBingo: false, bingos: remaining };
     }
 
+    const proofUrl = this.saveProofImage(proofDataUrl);
     cell.checked = true;
     cell.checkedByTeamId = team.id;
     cell.checkedByUserId = user.id;
     cell.checkedByName = user.name;
     cell.checkedAt = new Date().toISOString();
+    cell.proofUrl = proofUrl;
 
     const afterBingos = detectBingos(board);
     const newBingo = afterBingos.length > beforeBingos;
@@ -495,7 +574,9 @@ export class BingoStore {
         : `${user.name}${team.isSolo ? '' : ` (${team.name})`} completed "${cell.title}"`,
       userId: user.id,
       teamId: team.id,
-      cellIndex: idx
+      cellIndex: idx,
+      tier: cell.tier,
+      proofUrl
     });
     cell.activityId = act.id;
     this.saveAndBroadcast(newBingo ? 'bingo' : 'check', {
@@ -503,12 +584,54 @@ export class BingoStore {
       teamId: team.id,
       teamName: team.name,
       teamColor: team.color,
+      checkedByUserId: user.id,
       checkedByName: user.name,
       bingoCount: afterBingos.length,
       title: cell.title,
+      tier: cell.tier,
+      tierName: cell.tierName,
+      proofUrl,
       newBingo
     });
     return { cell, newBingo, bingos: afterBingos };
+  }
+
+  setCellProof(userId, cellIndex, overrideTeamId = null, proofDataUrl = null) {
+    const user = this.state.users[userId];
+    if (!user) throw new Error('User not found');
+
+    const idx = Number(cellIndex);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= 25) {
+      throw new Error('Invalid cell index');
+    }
+
+    const targetTeamId = overrideTeamId && user.isHost ? overrideTeamId : user.teamId;
+    if (!targetTeamId || !this.state.teams[targetTeamId]) {
+      throw new Error('Team not found');
+    }
+    const team = this.state.teams[targetTeamId];
+    const cell = team.board[idx];
+    if (!cell || !cell.checked) {
+      throw new Error('Check off this square before attaching a screenshot');
+    }
+
+    const nextUrl = proofDataUrl ? this.saveProofImage(proofDataUrl) : null;
+    if (cell.proofUrl) {
+      this.deleteProofFile(cell.proofUrl);
+    }
+    cell.proofUrl = nextUrl;
+
+    if (cell.activityId) {
+      const act = this.state.activity.find((a) => a.id === cell.activityId);
+      if (act) act.proofUrl = nextUrl;
+    }
+
+    this.saveAndBroadcast('proof', {
+      cellIndex: idx,
+      teamId: team.id,
+      proofUrl: nextUrl
+    });
+    return { cell };
   }
 
   redealBoards(hostUserId) {
@@ -516,6 +639,11 @@ export class BingoStore {
     if (!host?.isHost) throw new Error('Host permission required');
 
     this.reloadChallenges();
+    this.deleteBoardProofs(this.state.game.sharedBoard);
+    for (const team of Object.values(this.state.teams)) {
+      this.deleteBoardProofs(team.board);
+    }
+
     this.state.game.mode = 'classic';
     this.state.game.startedAt = new Date().toISOString();
     this.state.game.sharedBoard = generateBalancedBoard(this.challenges);
@@ -540,6 +668,11 @@ export class BingoStore {
     if (!host?.isHost) throw new Error('Host permission required');
 
     this.reloadChallenges();
+    this.deleteBoardProofs(this.state.game.sharedBoard);
+    for (const team of Object.values(this.state.teams)) {
+      this.deleteBoardProofs(team.board);
+    }
+
     const freshHost = {
       ...host,
       teamId: null,
@@ -629,6 +762,7 @@ export class BingoStore {
         ...cell,
         icon: latest.icon || cell.icon || null,
         description: latest.description || cell.description || '',
+        proof: latest.proof || cell.proof || '',
         tags: latest.tags || cell.tags || []
       };
     });

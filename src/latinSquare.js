@@ -124,6 +124,7 @@ export function generateBalancedBoard(challengesData) {
         title: challenge.title,
         icon: challenge.icon || null,
         description: challenge.description || '',
+        proof: challenge.proof || '',
         tags: challenge.tags || [],
         tier: tierNum,
         tierName: isCenterFree ? 'Free Space' : entry.meta.name,
@@ -133,7 +134,8 @@ export function generateBalancedBoard(challengesData) {
         checkedByTeamId: null,
         checkedByUserId: null,
         checkedByName: null,
-        checkedAt: null
+        checkedAt: null,
+        proofUrl: null
       });
     }
   }

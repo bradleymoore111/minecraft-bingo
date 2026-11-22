@@ -11,6 +11,7 @@
     "icon": "/icons/oak-log.svg",
     "description": "Shared center free space! Punch a tree and collect any log.",
     "rules": "Shared center Free Space on every player's and team's board! Punch any tree (oak, birch, spruce, dark oak, jungle, acacia, mangrove, cherry, pale oak, or Nether stem) and pick up a log to check off your center square.",
+    "proof": "F5 selfie holding your fresh log in front of the tree you just punched.",
     "tags": ["overworld", "free-space"]
   },
   "tiers": [
@@ -26,6 +27,7 @@
           "icon": "/icons/creeper-boat.svg",
           "description": "Place a boat and get a live Creeper stuck sitting inside it.",
           "rules": "Craft any boat, place it down, and lure or push a live Creeper so it hops into the boat without blowing up. Taking it for a spin is optional but strongly encouraged.",
+          "proof": "F5 selfie posing next to your very angry Creeper passenger sitting inside the boat.",
           "tags": ["overworld", "mobs"]
         },
         {
@@ -34,6 +36,7 @@
           "icon": "/icons/cloud-bed.svg",
           "description": "Place a bed at Y = 200 or higher and sleep in it.",
           "rules": "Build or climb up to at least Y = 200, place a bed, and lie down in it at night (or during a thunderstorm) — setting your spawn point / getting into bed at Y = 200+ counts even if other players on the server aren't sleeping.",
+          "proof": "Screenshot in or next to your cloud bed with F3 open (showing Y >= 200) or the clouds visibly below you.",
           "tags": ["overworld", "building"]
         },
         {
@@ -42,6 +45,7 @@
           "icon": "/icons/carrot-stick.svg",
           "description": "Saddle a pig, hold a Carrot on a Stick, and steer it around.",
           "rules": "Craft or find a Saddle (3 leather + 1 iron ingot), put it on a pig, craft a Carrot on a Stick (fishing rod + carrot), hop on, and steer the pig.",
+          "proof": "F5 selfie riding your saddled pig with the Carrot on a Stick in hand.",
           "tags": ["overworld", "mobs", "crafting"]
         },
         {
@@ -50,6 +54,7 @@
           "icon": "/icons/water-bucket.svg",
           "description": "Fall at least 30 blocks and negate all fall damage by placing water right before landing.",
           "rules": "Drop at least 30 blocks vertically (e.g., pillar 30+ blocks up or jump off a tall cliff) and place water from a bucket right before impact so you take zero fall damage. Jumping into water that was already placed does not count — it has to be a live clutch.",
+          "proof": "Selfie standing in your clutch water puddle looking up at the 30+ block pillar or cliff you just jumped from (with full health!).",
           "tags": ["overworld", "skill"]
         }
       ]
@@ -66,6 +71,7 @@
           "icon": "/icons/cactus.svg",
           "description": "Have the death message confirm you were pricked to death by a cactus.",
           "rules": "Find a cactus in a desert or badlands (or grow one) and take fatal damage from it. Softening yourself up with fall damage or mobs beforehand is totally fine as long as the killing blow produces the official 'was pricked to death' (or 'walked into a cactus while trying to escape...') death message in chat.",
+          "proof": "Screenshot of the death screen or chat message showing you were pricked to death by a cactus.",
           "tags": ["overworld", "desert", "death"]
         },
         {
@@ -74,6 +80,7 @@
           "icon": "/icons/diamond-hoe.svg",
           "description": "Craft a diamond hoe and completely use up all 1,561 durability until it breaks.",
           "rules": "Craft a fresh diamond hoe (2 diamonds + 2 sticks) and wear it down all the way through its 1,561 durability until it shatters in your hand. Tilling dirt, mining leaves/hay bales/sculk/sponges, or hitting mobs all count. Throwing it in lava, onto a cactus, or letting it despawn does NOT count!",
+          "proof": "Screenshot of the diamond hoe right before it shatters (tiny red durability bar / <10 uses left) or a selfie in the field of 1,500 tilled dirt / mined leaves.",
           "tags": ["overworld", "mining", "grind"]
         },
         {
@@ -82,6 +89,7 @@
           "icon": "/icons/sand.svg",
           "description": "Stack a continuous vertical pillar of sand from bedrock up to the sky limit (Y = 319).",
           "rules": "Build a single unbroken vertical 1×1 column of sand (regular sand, red sand, or a mix) starting directly on top of Overworld bedrock (Y = -59 or lower) all the way up to the sky build limit (Y = 319 — roughly 380 blocks, ~6 stacks of sand). Adjusted from 400 since vanilla Overworld height is 384 blocks total.",
+          "proof": "Selfie standing on top of the finished sand spire (or looking up at the absurdly tall sand tower from the ground).",
           "tags": ["overworld", "building", "grind"]
         },
         {
@@ -90,6 +98,7 @@
           "icon": "/icons/nether-bed.svg",
           "description": "Enter the Nether, place a bed, and try to sleep in it.",
           "rules": "Go to the Nether, place any bed, and right-click it to trigger the Intentional Game Design explosion. Bonus points if it actually kills you, though surviving the blast while standing next to it also counts!",
+          "proof": "Screenshot of the '[Intentional Game Design]' death screen — or an F5 selfie standing in the flaming Nether crater if you survived.",
           "tags": ["nether", "death"]
         },
         {
@@ -98,6 +107,7 @@
           "icon": "/icons/anvil.svg",
           "description": "Craft an Anvil and drop it onto any mob to deal the killing blow.",
           "rules": "Craft an Anvil (3 iron blocks + 4 iron ingots = 31 iron) and drop it from above onto any mob (passive or hostile) so the falling Anvil finishes it off. Trapping the mob in a pit or boat and weakening it first is totally allowed.",
+          "proof": "F5 selfie next to the landed Anvil and the flattened mob's drops/XP right beside it.",
           "tags": ["overworld", "combat", "crafting"]
         }
       ]
@@ -114,6 +124,7 @@
           "icon": "/icons/gold-hoe.svg",
           "description": "Obtain a golden hoe that has the Silk Touch enchantment via an enchanting table or anvil.",
           "rules": "Must specifically be a Golden Hoe with the Silk Touch enchantment. Getting it directly from an Enchanting Table, combining a Silk Touch book in an Anvil, or finding one in a Ruined Portal chest (if it has Silk Touch) all count. Extra enchantments on the same hoe are fine.",
+          "proof": "Screenshot with inventory open hovering over the Golden Hoe so the 'Silk Touch' tooltip is clearly visible.",
           "tags": ["overworld", "enchanting"]
         },
         {
@@ -122,6 +133,7 @@
           "icon": "/icons/jukebox.svg",
           "description": "Craft a jukebox and play at least 2 different music discs.",
           "rules": "Craft and place a Jukebox (1 diamond + 8 planks) and play at least two distinct music discs in it (e.g., Cat and 13, or any two different tracks). Playing the same disc twice does not count. You do not need to listen to the entire track — starting each disc is enough.",
+          "proof": "F5 selfie next to your placed Jukebox (bonus for music note particles!) with both different music discs visible in your hotbar/inventory.",
           "tags": ["overworld", "loot", "mobs"]
         },
         {
@@ -130,6 +142,7 @@
           "icon": "/icons/wolf-armor.svg",
           "description": "Brush armadillo scutes, craft Wolf Armor, and equip it onto your tamed wolf.",
           "rules": "Collect 6 armadillo scutes (by brushing armadillos or waiting for them to shed in Savanna/Badlands biomes), craft Wolf Armor, tame a wild wolf with bones, and right-click the armor onto your wolf. Dyeing the armor is optional.",
+          "proof": "F5 selfie sitting next to your battle-ready armored doggo.",
           "tags": ["overworld", "mobs", "savanna"]
         },
         {
@@ -138,6 +151,7 @@
           "icon": "/icons/armor-trim.svg",
           "description": "Apply any Armor Trim Smithing Template to a piece of armor at a Smithing Table.",
           "rules": "Find any Armor Trim Smithing Template (from shipwrecks, pillager outposts, desert temples, bastions, trail ruins, etc.) and apply it to any piece of armor (leather through netherite) at a Smithing Table using any valid trim material. Simply dyeing leather armor does NOT count.",
+          "proof": "F5 fashion selfie modeling your newly trimmed armor piece.",
           "tags": ["exploration", "crafting", "structures"]
         },
         {
@@ -146,6 +160,7 @@
           "icon": "/icons/allay.svg",
           "description": "Find an Allay (Pillager Outpost or Woodland Mansion) and give it an item so it follows you.",
           "rules": "Locate a captive Allay (inside a Pillager Outpost wooden cage or Woodland Mansion jail cell), free it, and right-click it with any item so it holds the item and follows you. Duplicating an Allay with an Amethyst Shard is optional.",
+          "proof": "F5 selfie with your bonded Allay floating right beside you holding your item.",
           "tags": ["overworld", "mobs", "structures"]
         },
         {
@@ -154,6 +169,7 @@
           "icon": "/icons/trident.svg",
           "description": "Get a Trident drop from a Drowned or loot one from a Trial Chamber vault.",
           "rules": "Have a Trident in your inventory obtained yourself — either dropped by a trident-wielding Drowned or looted from a Trial Chamber Vault. Borrowing another team's/player's trident just to hold it does not count.",
+          "proof": "F5 selfie wielding your newly won Trident.",
           "tags": ["overworld", "ocean", "combat"]
         }
       ]
@@ -170,6 +186,7 @@
           "icon": "/icons/panda.svg",
           "description": "Find a baby panda in a jungle/bamboo jungle and feed it a Golden Dandelion to keep it a baby forever.",
           "rules": "Find a baby panda in a Jungle or Bamboo Jungle (or breed two adult pandas with bamboo nearby to spawn a baby), craft a Golden Dandelion (1 Dandelion + 8 Gold Nuggets), and feed it to the baby panda so its growth is permanently locked.",
+          "proof": "F5 selfie hanging out with your forever-baby panda (bonus points if you catch the Golden Dandelion sparkle particles!).",
           "tags": ["overworld", "jungle", "mobs"]
         },
         {
@@ -178,6 +195,7 @@
           "icon": "/icons/happy-ghast.svg",
           "description": "Hydrate a Dried Ghast into a Happy Ghast, equip it with a Harness, and ride it through the air.",
           "rules": "Obtain a Dried Ghast (found near Soul Sand Valley fossils in the Nether, bartered from Piglins, or crafted with 1 Bone Block + 8 Ghast Tears), hydrate it in Overworld water until it becomes a Ghastling and grows into a Happy Ghast (snowballs speed up growth!), equip a crafted Harness, and actually fly on it.",
+          "proof": "F5 airborne selfie cruising high in the sky on your Happy Ghast.",
           "tags": ["nether", "overworld", "mobs"]
         },
         {
@@ -186,6 +204,7 @@
           "icon": "/icons/froglight.svg",
           "description": "Have a frog eat a tiny Magma Cube to produce any color of Froglight.",
           "rules": "Obtain any color of Froglight (Ochre, Verdant, or Pearlescent) by letting a Frog eat a tiny (smallest-size) Magma Cube. Either bring a frog into the Nether or push a Magma Cube into the Overworld — both methods are completely valid.",
+          "proof": "F5 selfie holding or standing beside your glowing Froglight (extra style points if the frog is still alive in frame!).",
           "tags": ["nether", "overworld", "mobs"]
         },
         {
@@ -194,6 +213,7 @@
           "icon": "/icons/wither-skull.svg",
           "description": "Defeat Wither Skeletons in a Nether Fortress until one drops its skull.",
           "rules": "Kill Wither Skeletons in a Nether Fortress (Looting helps a lot!) or blow one up with a Charged Creeper until a Wither Skeleton Skull drops, and pick it up into your inventory.",
+          "proof": "F5 selfie wearing the Wither Skeleton Skull on your head (or holding/placing it).",
           "tags": ["nether", "combat", "structures"]
         },
         {
@@ -202,6 +222,7 @@
           "icon": "/icons/sniffer-egg.svg",
           "description": "Brush a Sniffer Egg out of Suspicious Sand in warm ocean ruins and hatch it into a Snifflet.",
           "rules": "Brush Suspicious Sand in Warm Ocean Ruins until you obtain a Sniffer Egg, place the egg in the world, and wait for it to actually hatch into a baby Snifflet. Tip: placing the egg on a Moss Block cuts the hatch time in half (~10 minutes instead of 20). Simply holding the egg does NOT count.",
+          "proof": "F5 selfie posing with your freshly hatched baby Snifflet.",
           "tags": ["overworld", "ocean", "archaeology"]
         },
         {
@@ -210,6 +231,7 @@
           "icon": "/icons/mushroom.svg",
           "description": "Locate and set foot in a Mushroom Fields biome.",
           "rules": "Physically stand on land inside a Mushroom Fields biome (confirm via the F3 biome screen or standing on Mycelium alongside Mooshrooms). Just spotting it from a boat in the ocean doesn't count — make landfall!",
+          "proof": "F5 selfie standing on Mycelium surrounded by giant mushrooms and/or Mooshrooms.",
           "tags": ["overworld", "exploration", "ocean"]
         }
       ]
@@ -226,6 +248,7 @@
           "icon": "/icons/warden.svg",
           "description": "Summon and kill a Warden in the Deep Dark or an Ancient City.",
           "rules": "Summon a Warden via Sculk Shriekers and actually kill it (it drops a Sculk Catalyst upon death). Any vanilla survival tactic is allowed — bows, snowballs, towering, wool, TNT, iron golems, potions — as long as it dies. Letting it calm down and dig back underground does NOT count.",
+          "proof": "F5 selfie in the Deep Dark / Ancient City holding its dropped Sculk Catalyst (or mid-death animation if you're quick!).",
           "tags": ["overworld", "deep-dark", "boss"]
         },
         {
@@ -234,6 +257,7 @@
           "icon": "/icons/netherite-armor.svg",
           "description": "Craft and equip a complete set of Netherite armor (helmet, chestplate, leggings, boots).",
           "rules": "Upgrade all four pieces of Diamond Armor (helmet, chestplate, leggings, boots) using Netherite Ingots and Netherite Upgrade Smithing Templates (found in Bastion Remnants, duplicatable with diamonds + netherrack), and wear the complete set at the same time.",
+          "proof": "F5 flex selfie wearing all 4 pieces of Netherite armor at once.",
           "tags": ["nether", "mining", "structures", "grind"]
         },
         {
@@ -242,6 +266,7 @@
           "icon": "/icons/mace.svg",
           "description": "Combine a Breeze Rod and a Heavy Core from an Ominous Vault in a Trial Chamber.",
           "rules": "Drink an Ominous Bottle in a Trial Chamber to trigger Ominous Trial Spawners, loot a Heavy Core from an Ominous Vault using an Ominous Trial Key, and craft a Mace with 1 Heavy Core + 1 Breeze Rod.",
+          "proof": "F5 selfie holding your freshly crafted Mace (bonus points if you're mid-smash!).",
           "tags": ["overworld", "structures", "combat"]
         },
         {
@@ -250,6 +275,7 @@
           "icon": "/icons/nether-star.svg",
           "description": "Summon the Wither and defeat it to obtain a Nether Star.",
           "rules": "Summon the Wither using 4 Soul Sand/Soul Soil and 3 Wither Skeleton Skulls, and defeat it to obtain the Nether Star drop. Any vanilla survival strategy (including underground tunnels or End bedrock suffocation) is allowed unless the host says otherwise.",
+          "proof": "F5 victory selfie holding your glowing Nether Star in the battle crater.",
           "tags": ["nether", "boss"]
         },
         {
@@ -258,6 +284,7 @@
           "icon": "/icons/elytra.svg",
           "description": "Defeat the Ender Dragon, explore the outer End islands, and loot an Elytra from an End Ship.",
           "rules": "Reach the outer End islands (by defeating the Ender Dragon or bridging out), find an End City with an End Ship, and claim the Elytra from its item frame. Borrowing another player's Elytra does not count.",
+          "proof": "F5 selfie wearing your Elytra wings on the End Ship or soaring through the air.",
           "tags": ["end", "exploration", "structures"]
         }
       ]

@@ -17,4 +17,4 @@ chmod -R u=rwX,g=rX,o= /opt/minecraft-bingo
 chown -R mcbingo:mcbingo /opt/minecraft-bingo/data
 chmod 700 /opt/minecraft-bingo/data
 systemctl restart minecraft-bingo.service
-systemctl --no-pager --brief status minecraft-bingo.service || true
+systemctl --no-pager status minecraft-bingo.service || true

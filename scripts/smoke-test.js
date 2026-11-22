@@ -75,8 +75,27 @@ try {
   const solo = await req('/api/onboarding/solo', { method: 'POST', body: { color: '#22c55e' }, cookie: c1 });
   assert(solo.status === 200 && solo.json.team.board.length === 25, 'Solo onboarding dealt 25-cell board');
 
-  // 4. Complete Row 1 (indices 0..4) and verify Bingo detection
-  for (let i = 0; i < 4; i++) {
+  // 4. Complete Row 1 (indices 0..4) with a real PNG proof upload on cell 0 and verify Bingo detection
+  const tinyPngDataUrl =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7+1bQAAAAASUVORK5CYII=';
+  const firstCheck = await req('/api/board/toggle', {
+    method: 'POST',
+    body: { cellIndex: 0, proofDataUrl: tinyPngDataUrl },
+    cookie: c1
+  });
+  assert(firstCheck.status === 200 && firstCheck.json.cell.proofUrl?.startsWith('/api/proofs/'), 'Cell 0 uploaded proof image');
+  const proofRes = await fetch(`${BASE}${firstCheck.json.cell.proofUrl}`);
+  assert(proofRes.status === 200 && proofRes.headers.get('content-type') === 'image/png', 'Uploaded proof image served cleanly');
+
+  // Replace proof via /api/board/proof
+  const replaceProof = await req('/api/board/proof', {
+    method: 'POST',
+    body: { cellIndex: 0, proofDataUrl: tinyPngDataUrl },
+    cookie: c1
+  });
+  assert(replaceProof.status === 200 && replaceProof.json.cell.proofUrl !== firstCheck.json.cell.proofUrl, 'Proof replaced cleanly');
+
+  for (let i = 1; i < 4; i++) {
     const t = await req('/api/board/toggle', { method: 'POST', body: { cellIndex: i }, cookie: c1 });
     assert(t.status === 200 && t.json.newBingo === false, `Cell ${i} checked without premature bingo`);
   }

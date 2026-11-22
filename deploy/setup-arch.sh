@@ -160,7 +160,7 @@ if grep -q '^CLOUDFLARE_TUNNEL_TOKEN=.\+' "${ETC_DIR}/tunnel.env"; then
   systemctl restart minecraft-bingo.service cloudflared-mcbingo.service
   echo ""
   echo "SUCCESS! Both jailed services are running:"
-  systemctl --no-pager --brief status minecraft-bingo.service cloudflared-mcbingo.service || true
+  systemctl --no-pager status minecraft-bingo.service cloudflared-mcbingo.service || true
 else
   systemctl restart minecraft-bingo.service
   echo ""

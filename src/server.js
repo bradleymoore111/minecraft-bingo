@@ -1,8 +1,9 @@
 import 'dotenv/config';
+import fs from 'node:fs';
 import path from 'node:path';
 import express from 'express';
 import cookieParser from 'cookie-parser';
-import { BingoStore, ROOT_DIR } from './store.js';
+import { BingoStore, PROOFS_DIR, ROOT_DIR } from './store.js';
 import { getAuthProviders, getSessionUserId, registerAuthRoutes } from './auth.js';
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -13,7 +14,7 @@ const store = new BingoStore();
 // Trust Cloudflare Tunnel / reverse proxy headers (X-Forwarded-Proto, etc.)
 app.set('trust proxy', 1);
 
-app.use(express.json());
+app.use(express.json({ limit: '4mb' }));
 app.use(cookieParser());
 
 // Attach current user from signed session cookie
@@ -141,18 +142,52 @@ app.patch('/api/profile', requireAuth, (req, res) => {
   }
 });
 
-// Check / Uncheck Bingo tile (Honor system)
+// Check / Uncheck Bingo tile (with optional selfie/screenshot proof)
 app.post('/api/board/toggle', requireAuth, (req, res) => {
   try {
     const result = store.toggleCell(
       req.user.id,
       req.body?.cellIndex,
-      req.body?.teamId || null
+      req.body?.teamId || null,
+      req.body?.proofDataUrl || null
     );
     res.json({ ok: true, ...result, state: store.getPublicState() });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
+});
+
+// Add, replace, or remove screenshot proof on an already-checked square
+app.post('/api/board/proof', requireAuth, (req, res) => {
+  try {
+    const result = store.setCellProof(
+      req.user.id,
+      req.body?.cellIndex,
+      req.body?.teamId || null,
+      req.body?.proofDataUrl || null
+    );
+    res.json({ ok: true, ...result, state: store.getPublicState() });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Serve uploaded screenshot proofs safely (strict filename allowlist, nosniff)
+app.get('/api/proofs/:filename', (req, res) => {
+  const name = String(req.params.filename || '');
+  if (!/^[a-f0-9-]+\.(webp|jpg|png)$/.test(name)) {
+    return res.status(404).end();
+  }
+  const fullPath = path.join(PROOFS_DIR, name);
+  if (!fs.existsSync(fullPath)) {
+    return res.status(404).end();
+  }
+  const ext = path.extname(name).slice(1);
+  const mime = ext === 'webp' ? 'image/webp' : ext === 'jpg' ? 'image/jpeg' : 'image/png';
+  res.setHeader('Content-Type', mime);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  res.sendFile(fullPath);
 });
 
 // Host Controls

@@ -30,6 +30,7 @@
       <span id="nav-live" class="live-dot" title="Connected to live updates"></span>
     </div>
     <div class="nav-right">
+      <button id="btn-alerts" class="btn btn-ghost btn-sm" type="button" title="Enable desktop notifications &amp; Bloing sound for teammate &amp; T4+ completions">🔔 Alerts</button>
       <button id="btn-info" class="btn btn-ghost btn-sm" type="button">Info</button>
       <button id="btn-host" class="btn btn-amber btn-sm hidden" type="button">Host Controls</button>
       <button id="btn-profile" class="btn btn-secondary btn-sm profile-trigger" type="button">
@@ -284,6 +285,81 @@
           <h3>Manage Players &amp; Teams</h3>
           <div id="host-team-list" class="host-team-list"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkoff & Selfie Proof Modal -->
+  <div id="modal-checkoff" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="checkoff-modal-title">
+    <div class="modal-backdrop" data-close-modal="modal-checkoff"></div>
+    <div class="modal-card checkoff-modal-card">
+      <div class="modal-header">
+        <div class="checkoff-head-left">
+          <span id="checkoff-icon"></span>
+          <div>
+            <span id="checkoff-tier" class="cell-tier">T1</span>
+            <h2 id="checkoff-modal-title">Challenge</h2>
+          </div>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="modal-checkoff" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="checkoff-desc" class="muted small" style="margin:0 0 0.75rem"></p>
+
+        <div id="checkoff-proof-tip" class="proof-callout"></div>
+
+        <div id="checkoff-status" class="checkoff-status hidden"></div>
+
+        <!-- Dropzone / Paste / Upload -->
+        <div id="proof-dropzone" class="proof-dropzone" tabindex="0">
+          <input id="proof-file-input" type="file" accept="image/png,image/jpeg,image/webp,image/*" class="hidden" />
+          <div id="proof-dropzone-empty" class="proof-dropzone-empty">
+            <div class="proof-drop-icon">📷</div>
+            <div class="proof-drop-title">Paste screenshot (<code>Ctrl+V</code>), drag &amp; drop, or click to upload</div>
+            <div class="muted tiny">Optional selfie/proof · Auto-compressed for fast sharing</div>
+          </div>
+          <div id="proof-preview-wrap" class="proof-preview-wrap hidden">
+            <img id="proof-preview-img" class="proof-preview-img" alt="Proof preview" />
+            <div class="proof-preview-actions">
+              <button id="btn-proof-zoom" class="btn btn-secondary btn-sm" type="button">View Full Size</button>
+              <button id="btn-proof-replace" class="btn btn-secondary btn-sm" type="button">Replace</button>
+              <button id="btn-proof-clear" class="btn btn-ghost btn-sm" type="button">Remove</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mc-path-helper">
+          <span class="muted tiny">Minecraft F2 folder:</span>
+          <button id="btn-copy-mc-path" class="btn-link-tiny" type="button" title="Copy path to paste into the file picker address bar">
+            📋 Copy <code id="mc-path-label">%APPDATA%\.minecraft\screenshots</code>
+          </button>
+        </div>
+
+        <div class="checkoff-actions">
+          <button id="btn-checkoff-submit" class="btn btn-primary btn-lg btn-full" type="button">
+            Complete Square ✓
+          </button>
+          <button id="btn-checkoff-uncheck" class="btn btn-danger btn-full hidden" type="button">
+            Uncheck Square
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full-Size Selfie Proof Lightbox -->
+  <div id="modal-lightbox" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+    <div class="modal-backdrop" data-close-modal="modal-lightbox"></div>
+    <div class="lightbox-card">
+      <div class="lightbox-header">
+        <div>
+          <div id="lightbox-title" class="lightbox-title">Proof Screenshot</div>
+          <div id="lightbox-meta" class="muted tiny"></div>
+        </div>
+        <button class="icon-btn" type="button" data-close-modal="modal-lightbox" aria-label="Close">✕</button>
+      </div>
+      <div class="lightbox-img-wrap">
+        <img id="lightbox-img" class="lightbox-img" alt="Challenge proof screenshot" />
       </div>
     </div>
   </div>
